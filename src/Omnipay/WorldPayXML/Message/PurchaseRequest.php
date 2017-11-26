@@ -279,6 +279,23 @@ class PurchaseRequest extends AbstractRequest
     }
 
     /**
+     * @param $appleToken
+     * @return PurchaseRequest
+     */
+    public function setAppleToken($appleToken)
+    {
+        return $this->setParameter('appleToken', $appleToken);
+    }
+
+    /**
+     * @return array
+     */
+    public function getAppleToken()
+    {
+        return $this->getParameter('appleToken');
+    }
+
+    /**
      * Get data
      *
      * @access public
@@ -287,7 +304,10 @@ class PurchaseRequest extends AbstractRequest
     public function getData()
     {
         $this->validate('amount', 'card');
-        $this->getCard()->validate();
+
+        if (!$this->getAppleToken()) {
+            $this->getCard()->validate();
+        } // Else for Apple Pay, we use a dummy 'card' with partial metadata, which won't validate.
 
         $data = new \SimpleXMLElement('<paymentService />');
         $data->addAttribute('version', self::VERSION);
@@ -319,27 +339,44 @@ class PurchaseRequest extends AbstractRequest
             CreditCard::BRAND_VISA        => 'VISA-SSL'
         );
 
-        $card = $payment->addChild($codes[$this->getCard()->getBrand()]);
-        $card->addChild('cardNumber', $this->getCard()->getNumber());
+        if ($this->getCard()->getBrand() === 'apple') {
+            // With Apple Pay we have no card number so can't pattern match via getBrand()
+            $card = $payment->addChild('APPLEPAY-SSL');
 
-        $expiry = $card->addChild('expiryDate')->addChild('date');
-        $expiry->addAttribute('month', $this->getCard()->getExpiryDate('m'));
-        $expiry->addAttribute('year', $this->getCard()->getExpiryDate('Y'));
+            $appleData = $this->getAppleToken();
 
-        $card->addChild('cardHolderName', $this->getCard()->getName());
+            $card->addAttribute('data', $appleData['paymentData']['data']);
+            $card->addAttribute('signature', $appleData['paymentData']['signature']);
+            $card->addAttribute('version', $appleData['paymentData']['version']);
 
-        if (
+            $header = $card->addChild('header');
+            $header->addAttribute('applicationData', $appleData['paymentData']['header']['applicationData']);
+            $header->addAttribute('ephemeralPublicKey', $appleData['paymentData']['header']['ephemeralPublicKey']);
+            $header->addAttribute('publicKeyHash', $appleData['paymentData']['header']['publicKeyHash']);
+            $header->addAttribute('transactionId', $appleData['paymentData']['header']['transactionId']);
+        } else {
+            $card = $payment->addChild($codes[$this->getCard()->getBrand()]);
+            $card->addChild('cardNumber', $this->getCard()->getNumber());
+
+            $expiry = $card->addChild('expiryDate')->addChild('date');
+            $expiry->addAttribute('month', $this->getCard()->getExpiryDate('m'));
+            $expiry->addAttribute('year', $this->getCard()->getExpiryDate('Y'));
+
+            $card->addChild('cardHolderName', $this->getCard()->getName());
+
+            if (
                 $this->getCard()->getBrand() == CreditCard::BRAND_MAESTRO
-             || $this->getCard()->getBrand() == CreditCard::BRAND_SWITCH
-        ) {
-            $start = $card->addChild('startDate')->addChild('date');
-            $start->addAttribute('month', $this->getCard()->getStartDate('m'));
-            $start->addAttribute('year', $this->getCard()->getStartDate('Y'));
+                || $this->getCard()->getBrand() == CreditCard::BRAND_SWITCH
+            ) {
+                $start = $card->addChild('startDate')->addChild('date');
+                $start->addAttribute('month', $this->getCard()->getStartDate('m'));
+                $start->addAttribute('year', $this->getCard()->getStartDate('Y'));
 
-            $card->addChild('issueNumber', $this->getCard()->getIssueNumber());
+                $card->addChild('issueNumber', $this->getCard()->getIssueNumber());
+            }
+
+            $card->addChild('cvc', $this->getCard()->getCvv());
         }
-
-        $card->addChild('cvc', $this->getCard()->getCvv());
 
         $address = $card->addChild('cardAddress')->addChild('address');
         $address->addChild('street', $this->getCard()->getAddress1());

@@ -24,7 +24,7 @@ class GatewayTest extends GatewayTestCase
                     'lastName' => 'User',
                     'number' => '4111111111111111',
                     'expiryMonth' => '12',
-                    'expiryYear' => '2016',
+                    'expiryYear' => '2026',
                     'cvv' => '123',
                 )
             ),
@@ -50,5 +50,35 @@ class GatewayTest extends GatewayTestCase
 
         $this->assertFalse($response->isSuccessful());
         $this->assertSame('CARD EXPIRED', $response->getMessage());
+    }
+
+    public function testApplePaySuccess()
+    {
+        $applePayOptions = array(
+            'amount' => '10.00',
+            'card' => new ApplePayCreditCard(),
+            'appleToken' => array(
+                'transactionIdentifier' => '5394..00',
+                'paymentData' => array(
+                    'data' => 'kdHd..GQ==',
+                    'signature' => 'MIAGCSqGSIb3DQEH...AAA',
+                    'version' => 'EC_v1',
+                    'header' => array(
+                        'applicationData' => '94ee0..C2',
+                        'ephemeralPublicKey' => 'MFkwE..Q==',
+                        'publicKeyHash' => 'dxCK..6o=',
+                        'transactionId' => 'd3b28af..f8',
+                    ),
+                ),
+            ),
+            'transactionId' => 'T0211010',
+        );
+
+        $this->setMockHttpResponse('PurchaseSuccessApplePay.txt');
+
+        $response = $this->gateway->purchase($applePayOptions)->send();
+
+        $this->assertTrue($response->isSuccessful());
+        $this->assertEquals('T0211011', $response->getTransactionReference());
     }
 }
