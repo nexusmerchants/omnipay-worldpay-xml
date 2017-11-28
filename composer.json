@@ -33,9 +33,22 @@
     "require-dev": {
         "omnipay/tests": "~2.0"
     },
+    "scripts": {
+        "test": [
+            "phpunit",
+            "@lint"
+        ],
+        "lint": [
+            "phpcs --standard=PSR2 --encoding=utf-8 src tests"
+        ]
+    },
     "extra": {
         "branch-alias": {
             "dev-master": "1.0.x-dev"
         }
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "sort-packages": true
     }
 }

@@ -45,14 +45,16 @@ class PurchaseRequestTest extends TestCase
         $this->assertEquals('745', $data->submit->order->amount->attributes()['value']);
         $this->assertEquals('GBP', $data->submit->order->amount->attributes()['currencyCode']);
         $this->assertEquals('2', $data->submit->order->amount->attributes()['exponent']);
-        $this->assertEquals('745 THORNBURY CLOSE', (string) $data->submit->order->paymentDetails->{'VISA-SSL'}->cardAddress->address->street);
-        $this->assertEquals('N16 8UX', (string) $data->submit->order->paymentDetails->{'VISA-SSL'}->cardAddress->address->postalCode);
-        $this->assertEquals('GB', (string) $data->submit->order->paymentDetails->{'VISA-SSL'}->cardAddress->address->countryCode);
 
-        $this->assertEquals('4111111111111111', (string) $data->submit->order->paymentDetails->{'VISA-SSL'}->cardNumber);
-        $this->assertEquals('12', (string) $data->submit->order->paymentDetails->{'VISA-SSL'}->expiryDate->date->attributes()['month']);
-        $this->assertEquals('2026', (string) $data->submit->order->paymentDetails->{'VISA-SSL'}->expiryDate->date->attributes()['year']);
-        $this->assertEquals('123', (string) $data->submit->order->paymentDetails->{'VISA-SSL'}->cvc);
+        $visaDetails = $data->submit->order->paymentDetails->{'VISA-SSL'};
+        $this->assertEquals('745 THORNBURY CLOSE', $visaDetails->cardAddress->address->street);
+        $this->assertEquals('N16 8UX', $visaDetails->cardAddress->address->postalCode);
+        $this->assertEquals('GB', $visaDetails->cardAddress->address->countryCode);
+
+        $this->assertEquals('4111111111111111', $visaDetails->cardNumber);
+        $this->assertEquals('12', $visaDetails->expiryDate->date->attributes()['month']);
+        $this->assertEquals('2026', $visaDetails->expiryDate->date->attributes()['year']);
+        $this->assertEquals('123', $visaDetails->cvc);
     }
 
     public function testApplePayPayload()
@@ -79,13 +81,14 @@ class PurchaseRequestTest extends TestCase
         $this->assertEquals('GBP', $data->submit->order->amount->attributes()['currencyCode']);
         $this->assertEquals('2', $data->submit->order->amount->attributes()['exponent']);
 
-        $this->assertEquals('kdHd..GQ==', $data->submit->order->paymentDetails->{'APPLEPAY-SSL'}->data);
-        $this->assertEquals('94ee0..C2', $data->submit->order->paymentDetails->{'APPLEPAY-SSL'}->header->applicationData);
-        $this->assertEquals('MFkwE..Q==', $data->submit->order->paymentDetails->{'APPLEPAY-SSL'}->header->ephemeralPublicKey);
-        $this->assertEquals('dxCK..6o=', $data->submit->order->paymentDetails->{'APPLEPAY-SSL'}->header->publicKeyHash);
-        $this->assertEquals('d3b28af..f8', $data->submit->order->paymentDetails->{'APPLEPAY-SSL'}->header->transactionId);
-        $this->assertEquals('MIAGCSqGSIb3DQEH...AAA', $data->submit->order->paymentDetails->{'APPLEPAY-SSL'}->signature);
-        $this->assertEquals('EC_v1', $data->submit->order->paymentDetails->{'APPLEPAY-SSL'}->version);
+        $appleDetails = $data->submit->order->paymentDetails->{'APPLEPAY-SSL'};
+        $this->assertEquals('kdHd..GQ==', $appleDetails->data);
+        $this->assertEquals('94ee0..C2', $appleDetails->header->applicationData);
+        $this->assertEquals('MFkwE..Q==', $appleDetails->header->ephemeralPublicKey);
+        $this->assertEquals('dxCK..6o=', $appleDetails->header->publicKeyHash);
+        $this->assertEquals('d3b28af..f8', $appleDetails->header->transactionId);
+        $this->assertEquals('MIAGCSqGSIb3DQEH...AAA', $appleDetails->signature);
+        $this->assertEquals('EC_v1', $appleDetails->version);
 
         $this->assertEmpty($data->submit->order->billingAddress);
     }
