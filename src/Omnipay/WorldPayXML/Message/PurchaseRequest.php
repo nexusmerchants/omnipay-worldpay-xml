@@ -326,7 +326,7 @@ class PurchaseRequest extends AbstractRequest
 
         $payment = $order->addChild('paymentDetails');
 
-        $codes = array(
+        $codes = [
             CreditCard::BRAND_AMEX        => 'AMEX-SSL',
             CreditCard::BRAND_DANKORT     => 'DANKORT-SSL',
             CreditCard::BRAND_DINERS_CLUB => 'DINERS-SSL',
@@ -337,23 +337,24 @@ class PurchaseRequest extends AbstractRequest
             CreditCard::BRAND_MASTERCARD  => 'ECMC-SSL',
             CreditCard::BRAND_SWITCH      => 'MAESTRO-SSL',
             CreditCard::BRAND_VISA        => 'VISA-SSL'
-        );
+        ];
 
         if ($this->getCard()->getBrand() === 'apple') {
             // With Apple Pay we have no card number so can't pattern match via getBrand()
             $card = $payment->addChild('APPLEPAY-SSL');
 
-            $appleData = $this->getAppleToken();
-
-            $card->addAttribute('data', $appleData['paymentData']['data']);
-            $card->addAttribute('signature', $appleData['paymentData']['signature']);
-            $card->addAttribute('version', $appleData['paymentData']['version']);
+            $appleData = $this->getAppleToken()['paymentData'];
 
             $header = $card->addChild('header');
-            $header->addAttribute('applicationData', $appleData['paymentData']['header']['applicationData']);
-            $header->addAttribute('ephemeralPublicKey', $appleData['paymentData']['header']['ephemeralPublicKey']);
-            $header->addAttribute('publicKeyHash', $appleData['paymentData']['header']['publicKeyHash']);
-            $header->addAttribute('transactionId', $appleData['paymentData']['header']['transactionId']);
+
+            $header->addChild('applicationData', $appleData['header']['applicationData']);
+            $header->addChild('ephemeralPublicKey', $appleData['header']['ephemeralPublicKey']);
+            $header->addChild('publicKeyHash', $appleData['header']['publicKeyHash']);
+            $header->addChild('transactionId', $appleData['header']['transactionId']);
+
+            $card->addChild('data', $appleData['data']);
+            $card->addChild('signature', $appleData['signature']);
+            $card->addChild('version', $appleData['version']);
         } else {
             $card = $payment->addChild($codes[$this->getCard()->getBrand()]);
             $card->addChild('cardNumber', $this->getCard()->getNumber());
@@ -446,10 +447,10 @@ class PurchaseRequest extends AbstractRequest
             $this->getMerchant() . ':' . $this->getPassword()
         );
 
-        $headers = array(
+        $headers = [
             'Authorization' => 'Basic ' . $authorisation,
             'Content-Type'  => 'text/xml; charset=utf-8'
-        );
+        ];
 
         $cookieJar = new ArrayCookieJar();
 
@@ -459,14 +460,12 @@ class PurchaseRequest extends AbstractRequest
             $url = parse_url($this->getEndpoint());
 
             $cookieJar->add(
-                new Cookie(
-                    array(
-                        'domain' => $url['host'],
-                        'name'   => 'machine',
-                        'path'   => '/',
-                        'value'  => $redirectCookie
-                    )
-                )
+                new Cookie([
+                    'domain' => $url['host'],
+                    'name'   => 'machine',
+                    'path'   => '/',
+                    'value'  => $redirectCookie
+                ])
             );
         }
 
