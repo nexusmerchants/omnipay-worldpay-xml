@@ -54,6 +54,10 @@ class GatewayTest extends GatewayTestCase
 
     public function testApplePaySuccess()
     {
+        $card = new ApplePayCreditCard();
+
+        $this->assertEquals('apple', $card->getBrand());
+
         $applePayOptions = array(
             'amount' => '10.00',
             'card' => new ApplePayCreditCard(),
