@@ -30,12 +30,12 @@ class Gateway extends AbstractGateway
      */
     public function getDefaultParameters()
     {
-        return array(
+        return [
             'installation' => '',
             'merchant'     => '',
             'password'     => '',
             'testMode'     => false,
-        );
+        ];
     }
 
     /**
@@ -286,10 +286,10 @@ class Gateway extends AbstractGateway
      * @access public
      * @return \Omnipay\WorldPayXML\Message\PurchaseRequest
      */
-    public function purchase(array $parameters = array())
+    public function purchase(array $parameters = [])
     {
         return $this->createRequest(
-            '\Omnipay\WorldPayXML\Message\PurchaseRequest',
+            \Omnipay\WorldPayXML\Message\PurchaseRequest::class,
             $parameters
         );
     }

@@ -16,20 +16,18 @@ class GatewayTest extends GatewayTestCase
             $this->getHttpRequest()
         );
 
-        $this->options = array(
+        $this->options = [
             'amount' => '10.00',
-            'card' => new CreditCard(
-                array(
-                    'firstName' => 'Example',
-                    'lastName' => 'User',
-                    'number' => '4111111111111111',
-                    'expiryMonth' => '12',
-                    'expiryYear' => '2026',
-                    'cvv' => '123',
-                )
-            ),
+            'card' => new CreditCard([
+                'firstName' => 'Example',
+                'lastName' => 'User',
+                'number' => '4111111111111111',
+                'expiryMonth' => '12',
+                'expiryYear' => '2026',
+                'cvv' => '123',
+            ]),
             'transactionId' => 'T0211010',
-        );
+        ];
     }
 
     public function testPurchaseSuccess()
@@ -58,25 +56,25 @@ class GatewayTest extends GatewayTestCase
 
         $this->assertEquals('apple', $card->getBrand());
 
-        $applePayOptions = array(
+        $applePayOptions = [
             'amount' => '10.00',
             'card' => new ApplePayCreditCard(),
-            'appleToken' => array(
+            'appleToken' => [
                 'transactionIdentifier' => '5394..00',
-                'paymentData' => array(
+                'paymentData' => [
                     'data' => 'kdHd..GQ==',
                     'signature' => 'MIAGCSqGSIb3DQEH...AAA',
                     'version' => 'EC_v1',
-                    'header' => array(
+                    'header' => [
                         'applicationData' => '94ee0..C2',
                         'ephemeralPublicKey' => 'MFkwE..Q==',
                         'publicKeyHash' => 'dxCK..6o=',
                         'transactionId' => 'd3b28af..f8',
-                    ),
-                ),
-            ),
+                    ],
+                ],
+            ],
             'transactionId' => 'T0211010',
-        );
+        ];
 
         $this->setMockHttpResponse('PurchaseSuccessApplePay.txt');
 

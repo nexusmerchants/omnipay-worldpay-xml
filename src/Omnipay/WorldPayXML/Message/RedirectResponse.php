@@ -47,10 +47,10 @@ class RedirectResponse extends Response implements RedirectResponseInterface
      */
     public function getRedirectData()
     {
-        return array(
+        return [
             'PaReq'   => $this->data->requestInfo->request3DSecure->paRequest,
             'TermUrl' => $this->request->getTermUrl()
-        );
+        ];
     }
 
     /**
