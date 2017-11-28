@@ -1,2 +1,5 @@
 vendor/
 .idea/
+
+# Ignore version lock file as lib's not standalone
+composer.lock
