@@ -7,7 +7,7 @@ use Omnipay\Tests\TestCase;
 class ResponseTest extends TestCase
 {
     /**
-     * @expectedException Omnipay\Common\Exception\InvalidResponseException
+     * @expectedException \Omnipay\Common\Exception\InvalidResponseException
      */
     public function testConstructEmpty()
     {
@@ -25,6 +25,20 @@ class ResponseTest extends TestCase
         $this->assertTrue($response->isSuccessful());
         $this->assertFalse($response->isRedirect());
         $this->assertEquals('T0211010', $response->getTransactionReference());
+        $this->assertEquals('AUTHORISED', $response->getMessage());
+    }
+
+    public function testPurchaseSuccessApplePay()
+    {
+        $httpResponse = $this->getMockHttpResponse('PurchaseSuccessApplePay.txt');
+        $response = new Response(
+            $this->getMockRequest(),
+            $httpResponse->getBody()
+        );
+
+        $this->assertTrue($response->isSuccessful());
+        $this->assertFalse($response->isRedirect());
+        $this->assertEquals('T0211011', $response->getTransactionReference());
         $this->assertEquals('AUTHORISED', $response->getMessage());
     }
 
