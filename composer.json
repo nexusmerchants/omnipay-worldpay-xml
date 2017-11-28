@@ -1,5 +1,5 @@
 {
-    "name": "teaandcode/omnipay-worldpay-xml",
+    "name": "comicrelief/omnipay-worldpay-xml",
     "type": "library",
     "description": "WorldPay XML driver for the Omnipay payment processing library",
     "keywords": [
@@ -10,27 +10,45 @@
         "worldpay",
         "payment"
     ],
-    "homepage": "https://github.com/teaandcode/omnipay-worldpay-xml",
+    "homepage": "https://github.com/comicrelief/omnipay-worldpay-xml",
     "license": "MIT",
     "authors": [
         {
             "name": "Dave Nash",
             "email": "dave.nash@teaandcode.com"
+        },
+        {
+            "name": "Noel Light-Hilary",
+            "email": "n.light-hilary@comicrelief.com"
         }
     ],
     "autoload": {
         "psr-0": { "Omnipay\\WorldPayXML\\" : "src/" }
     },
     "require": {
+        "php": "^5.6|^7",
         "guzzle/plugin-cookie": "~3.7",
         "omnipay/common": "~2.3"
     },
     "require-dev": {
         "omnipay/tests": "~2.0"
     },
+    "scripts": {
+        "test": [
+            "phpunit",
+            "@lint"
+        ],
+        "lint": [
+            "phpcs --standard=PSR2 --encoding=utf-8 src tests"
+        ]
+    },
     "extra": {
         "branch-alias": {
             "dev-master": "1.0.x-dev"
         }
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "sort-packages": true
     }
 }
