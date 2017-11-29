@@ -7,6 +7,13 @@ use Omnipay\Tests\GatewayTestCase;
 
 class GatewayTest extends GatewayTestCase
 {
+    /** @var Gateway */
+    protected $gateway;
+    /** @var array */
+    private $parameters;
+    /** @var CreditCard */
+    private $card;
+
     public function setUp()
     {
         parent::setUp();
@@ -15,8 +22,11 @@ class GatewayTest extends GatewayTestCase
             $this->getHttpClient(),
             $this->getHttpRequest()
         );
+        $this->gateway->setMerchant('ACMECO');
+        $this->gateway->setTestMode(true);
+        $this->gateway->setInstallation('ABC123');
 
-        $this->options = [
+        $this->parameters = [
             'amount' => '10.00',
             'card' => new CreditCard([
                 'firstName' => 'Example',
@@ -34,7 +44,12 @@ class GatewayTest extends GatewayTestCase
     {
         $this->setMockHttpResponse('PurchaseSuccess.txt');
 
-        $response = $this->gateway->purchase($this->options)->send();
+        $purchase = $this->gateway->purchase($this->parameters);
+
+        // Confirm basic auth uses merchant code to authenticate when there's no username.
+        $this->assertEquals('ACMECO', $purchase->getUsername());
+
+        $response = $purchase->send();
 
         $this->assertTrue($response->isSuccessful());
         $this->assertEquals('T0211010', $response->getTransactionReference());
@@ -44,7 +59,7 @@ class GatewayTest extends GatewayTestCase
     {
         $this->setMockHttpResponse('PurchaseFailure.txt');
 
-        $response = $this->gateway->purchase($this->options)->send();
+        $response = $this->gateway->purchase($this->parameters)->send();
 
         $this->assertFalse($response->isSuccessful());
         $this->assertSame('CARD EXPIRED', $response->getMessage());
@@ -78,9 +93,28 @@ class GatewayTest extends GatewayTestCase
 
         $this->setMockHttpResponse('PurchaseSuccessApplePay.txt');
 
-        $response = $this->gateway->purchase($applePayOptions)->send();
+        $purchase = $this->gateway->purchase($applePayOptions);
+
+        // Confirm basic auth uses merchant code to authenticate when there's no username.
+        $this->assertEquals('ACMECO', $purchase->getUsername());
+
+        $response = $purchase->send();
 
         $this->assertTrue($response->isSuccessful());
         $this->assertEquals('T0211011', $response->getTransactionReference());
+    }
+
+    /**
+     * Confirm basic auth uses a username when set rather than merchant code.
+     */
+    public function testUsernameAuthSetup()
+    {
+        $gatewayWithUsername = clone $this->gateway;
+        $gatewayWithUsername->setUsername('MYSECRETUSERNAME987');
+
+        $purchase = $gatewayWithUsername->purchase($this->parameters);
+        $purchase->setCard($this->card);
+
+        $this->assertEquals('MYSECRETUSERNAME987', $purchase->getUsername());
     }
 }
