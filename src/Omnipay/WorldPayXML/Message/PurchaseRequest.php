@@ -368,14 +368,14 @@ class PurchaseRequest extends AbstractRequest
 
             $header = $card->addChild('header');
 
-            $header->addChild('applicationData', $appleData['header']['applicationData']);
             $header->addChild('ephemeralPublicKey', $appleData['header']['ephemeralPublicKey']);
             $header->addChild('publicKeyHash', $appleData['header']['publicKeyHash']);
             $header->addChild('transactionId', $appleData['header']['transactionId']);
+            $header->addChild('applicationData', $appleData['header']['applicationData']);
 
-            $card->addChild('data', $appleData['data']);
             $card->addChild('signature', $appleData['signature']);
             $card->addChild('version', $appleData['version']);
+            $card->addChild('data', $appleData['data']);
         } else {
             $card = $payment->addChild($codes[$this->getCard()->getBrand()]);
             $card->addChild('cardNumber', $this->getCard()->getNumber());
@@ -398,12 +398,12 @@ class PurchaseRequest extends AbstractRequest
             }
 
             $card->addChild('cvc', $this->getCard()->getCvv());
-        }
 
-        $address = $card->addChild('cardAddress')->addChild('address');
-        $address->addChild('street', $this->getCard()->getAddress1());
-        $address->addChild('postalCode', $this->getCard()->getPostcode());
-        $address->addChild('countryCode', $this->getCard()->getCountry());
+            $address = $card->addChild('cardAddress')->addChild('address');
+            $address->addChild('street', $this->getCard()->getAddress1());
+            $address->addChild('postalCode', $this->getCard()->getPostcode());
+            $address->addChild('countryCode', $this->getCard()->getCountry());
+        }
 
         $session = $payment->addChild('session');
         $session->addAttribute('shopperIPAddress', $this->getClientIP());
