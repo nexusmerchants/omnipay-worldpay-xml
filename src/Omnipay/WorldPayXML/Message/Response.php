@@ -13,15 +13,15 @@ use Omnipay\Common\Message\RequestInterface;
 class Response extends AbstractResponse
 {
     /** @var string */
-    protected static $PAYMENT_STATUS_AUTHORISED             = 'AUTHORISED';
+    const PAYMENT_STATUS_AUTHORISED             = 'AUTHORISED';
     /** @var string */
-    protected static $PAYMENT_STATUS_CAPTURED               = 'CAPTURED';
+    const PAYMENT_STATUS_CAPTURED               = 'CAPTURED';
     /** @var string */
-    protected static $PAYMENT_STATUS_SETTLED_BY_MERCHANT    = 'SETTLED_BY_MERCHANT';
+    const PAYMENT_STATUS_SETTLED_BY_MERCHANT    = 'SETTLED_BY_MERCHANT';
     /** @var string */
-    protected static $PAYMENT_STATUS_SENT_FOR_AUTHORISATION = 'SENT_FOR_AUTHORISATION';
+    const PAYMENT_STATUS_SENT_FOR_AUTHORISATION = 'SENT_FOR_AUTHORISATION';
     /** @var string */
-    protected static $PAYMENT_STATUS_CANCELLED              = 'CANCELLED';
+    const PAYMENT_STATUS_CANCELLED              = 'CANCELLED';
 
     /**
      * @param RequestInterface $request Request
@@ -213,9 +213,9 @@ class Response extends AbstractResponse
         return in_array(
             strtoupper($this->getOrder()->payment->lastEvent),
             [
-                self::$PAYMENT_STATUS_AUTHORISED,
-                self::$PAYMENT_STATUS_CAPTURED,
-                self::$PAYMENT_STATUS_SETTLED_BY_MERCHANT,
+                self::PAYMENT_STATUS_AUTHORISED,
+                self::PAYMENT_STATUS_CAPTURED,
+                self::PAYMENT_STATUS_SETTLED_BY_MERCHANT,
             ],
             true
         );
