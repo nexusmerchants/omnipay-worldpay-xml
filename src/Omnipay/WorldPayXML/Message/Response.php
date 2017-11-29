@@ -12,13 +12,21 @@ use Omnipay\Common\Message\RequestInterface;
  */
 class Response extends AbstractResponse
 {
+    /** @var string */
+    const PAYMENT_STATUS_AUTHORISED             = 'AUTHORISED';
+    /** @var string */
+    const PAYMENT_STATUS_CAPTURED               = 'CAPTURED';
+    /** @var string */
+    const PAYMENT_STATUS_SETTLED_BY_MERCHANT    = 'SETTLED_BY_MERCHANT';
+    /** @var string */
+    const PAYMENT_STATUS_SENT_FOR_AUTHORISATION = 'SENT_FOR_AUTHORISATION';
+    /** @var string */
+    const PAYMENT_STATUS_CANCELLED              = 'CANCELLED';
+
     /**
-     * Constructor
-     *
      * @param RequestInterface $request Request
      * @param string           $data    Data
-     *
-     * @access public
+     * @throws InvalidResponseException if non-XML response received
      */
     public function __construct(RequestInterface $request, $data)
     {
@@ -29,11 +37,17 @@ class Response extends AbstractResponse
         }
 
         $responseDom = new DOMDocument;
-        $responseDom->loadXML($data);
+        if (!@$responseDom->loadXML($data)) {
+            throw new InvalidResponseException('Non-XML notification response received');
+        }
 
-        $this->data = simplexml_import_dom(
-            $responseDom->documentElement->firstChild->firstChild
+        $this->data = @simplexml_import_dom(
+            $responseDom->documentElement->firstChild // <notify> or <reply>
         );
+
+        if (empty($this->data)) {
+            throw new InvalidResponseException('Could not import response XML: ' . $data);
+        }
     }
 
     /**
@@ -92,42 +106,86 @@ class Response extends AbstractResponse
             97 => 'SECURITY BREACH'
         ];
 
-        $message = 'PENDING';
-
         if (isset($this->data->error)) {
-            $message = 'ERROR: ' . $this->data->error;
+            return 'ERROR: ' . $this->data->error; // Cast to string to get CDATA content
         }
 
-        if (isset($this->data->payment->ISO8583ReturnCode)) {
-            $returnCode = $this->data->payment->ISO8583ReturnCode->attributes();
+        $payment = $this->getOrder()->payment;
+        if (isset($payment->ISO8583ReturnCode)) {
+            $returnCode = $payment->ISO8583ReturnCode->attributes();
 
             foreach ($returnCode as $name => $value) {
                 if ($name == 'code') {
-                    $message = $codes[intval($value)];
+                    return $codes[intval($value)];
                 }
             }
         }
 
         if ($this->isSuccessful()) {
-            $message = $codes[0];
+            return $codes[0];
         }
 
-        return $message;
+        return 'PENDING';
     }
 
     /**
-     * Get transaction reference
+     * Get transaction reference provided with order (the ID in Omnipay parlance), and sent back with notifications.
      *
-     * @access public
-     * @return string
+     * @return string|null
      */
-    public function getTransactionReference()
+    public function getTransactionId()
     {
-        $attributes = $this->data->attributes();
+        if (empty($this->getOrder())) {
+            return null;
+        }
+
+        $attributes = $this->getOrder()->attributes();
 
         if (isset($attributes['orderCode'])) {
             return $attributes['orderCode'];
         }
+
+        return null;
+    }
+
+    /**
+     * Get *your* reference a.k.a Omnipay transaction ID (!)
+     *
+     * @return string
+     * @deprecated This was named inconsistently with other Omnipay adapters. Use getTransactionId(), whose name
+     * reflects the actual contents returned.
+     */
+    public function getTransactionReference()
+    {
+        return $this->getTransactionId();
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getErrorCode()
+    {
+        if (!isset($this->data->error) || empty($this->data->error->attributes()['code'])) {
+            return null;
+        }
+
+        return (string) $this->data->error->attributes()['code'];
+    }
+
+    /**
+     * @return null|\SimpleXMLElement
+     */
+    public function getOrder()
+    {
+        if (isset($this->data->orderStatusEvent)) {
+            return $this->data->orderStatusEvent; // Notifications
+        }
+
+        if (isset($this->data->orderStatus)) {
+            return $this->data->orderStatus; // Order responses
+        }
+
+        return null;
     }
 
     /**
@@ -138,27 +196,28 @@ class Response extends AbstractResponse
      */
     public function isRedirect()
     {
-        if (isset($this->data->requestInfo->request3DSecure->issuerURL)) {
-            return true;
-        }
-
-        return false;
+        return isset($this->data->requestInfo->request3DSecure->issuerURL);
     }
 
     /**
-     * Get is successful
+     * Whether transaction's last state indicates success
      *
-     * @access public
-     * @return boolean
+     * @return bool
      */
     public function isSuccessful()
     {
-        if (isset($this->data->payment->lastEvent)) {
-            if (strtoupper($this->data->payment->lastEvent) == 'AUTHORISED') {
-                return true;
-            }
+        if (!isset($this->getOrder()->payment->lastEvent)) {
+            return false;
         }
 
-        return false;
+        return in_array(
+            strtoupper($this->getOrder()->payment->lastEvent),
+            [
+                self::PAYMENT_STATUS_AUTHORISED,
+                self::PAYMENT_STATUS_CAPTURED,
+                self::PAYMENT_STATUS_SETTLED_BY_MERCHANT,
+            ],
+            true
+        );
     }
 }

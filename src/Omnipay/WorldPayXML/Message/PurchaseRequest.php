@@ -111,6 +111,27 @@ class PurchaseRequest extends AbstractRequest
     }
 
     /**
+     * Get the separate username if configured (more secure approach for basic auth) or fallback to merchant if not
+     *
+     * @return string
+     */
+    public function getUsername()
+    {
+        return $this->parameters->get('username', $this->getParameter('merchant'));
+    }
+
+    /**
+     * Set basic auth username
+     *
+     * @param string $value
+     * @return AbstractRequest
+     */
+    public function setUsername($value)
+    {
+        return $this->setParameter('username', $value);
+    }
+
+    /**
      * Get pa response
      *
      * @access public
@@ -347,14 +368,14 @@ class PurchaseRequest extends AbstractRequest
 
             $header = $card->addChild('header');
 
-            $header->addChild('applicationData', $appleData['header']['applicationData']);
             $header->addChild('ephemeralPublicKey', $appleData['header']['ephemeralPublicKey']);
             $header->addChild('publicKeyHash', $appleData['header']['publicKeyHash']);
             $header->addChild('transactionId', $appleData['header']['transactionId']);
+            $header->addChild('applicationData', $appleData['header']['applicationData']);
 
-            $card->addChild('data', $appleData['data']);
             $card->addChild('signature', $appleData['signature']);
             $card->addChild('version', $appleData['version']);
+            $card->addChild('data', $appleData['data']);
         } else {
             $card = $payment->addChild($codes[$this->getCard()->getBrand()]);
             $card->addChild('cardNumber', $this->getCard()->getNumber());
@@ -377,12 +398,12 @@ class PurchaseRequest extends AbstractRequest
             }
 
             $card->addChild('cvc', $this->getCard()->getCvv());
-        }
 
-        $address = $card->addChild('cardAddress')->addChild('address');
-        $address->addChild('street', $this->getCard()->getAddress1());
-        $address->addChild('postalCode', $this->getCard()->getPostcode());
-        $address->addChild('countryCode', $this->getCard()->getCountry());
+            $address = $card->addChild('cardAddress')->addChild('address');
+            $address->addChild('street', $this->getCard()->getAddress1());
+            $address->addChild('postalCode', $this->getCard()->getPostcode());
+            $address->addChild('countryCode', $this->getCard()->getCountry());
+        }
 
         $session = $payment->addChild('session');
         $session->addAttribute('shopperIPAddress', $this->getClientIP());
@@ -444,7 +465,7 @@ class PurchaseRequest extends AbstractRequest
         $document->appendChild($node);
 
         $authorisation = base64_encode(
-            $this->getMerchant() . ':' . $this->getPassword()
+            $this->getUsername() . ':' . $this->getPassword()
         );
 
         $headers = [
