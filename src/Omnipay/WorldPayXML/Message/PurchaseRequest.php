@@ -371,7 +371,9 @@ class PurchaseRequest extends AbstractRequest
             $header->addChild('ephemeralPublicKey', $appleData['header']['ephemeralPublicKey']);
             $header->addChild('publicKeyHash', $appleData['header']['publicKeyHash']);
             $header->addChild('transactionId', $appleData['header']['transactionId']);
-            $header->addChild('applicationData', $appleData['header']['applicationData']);
+            if (isset($appleData['header']['applicationData'])) {
+                $header->addChild('applicationData', $appleData['header']['applicationData']);
+            }
 
             $card->addChild('signature', $appleData['signature']);
             $card->addChild('version', $appleData['version']);
