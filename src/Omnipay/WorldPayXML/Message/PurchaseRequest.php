@@ -22,15 +22,12 @@ class PurchaseRequest extends AbstractRequest
 
     /**
      * @var \Guzzle\Plugin\Cookie\CookiePlugin
-     *
-     * @access protected
      */
     protected $cookiePlugin;
 
     /**
      * Get accept header
      *
-     * @access public
      * @return string
      */
     public function getAcceptHeader()
@@ -42,9 +39,7 @@ class PurchaseRequest extends AbstractRequest
      * Set accept header
      *
      * @param string $value Accept header
-     *
-     * @access public
-     * @return void
+     * @return PurchaseRequest
      */
     public function setAcceptHeader($value)
     {
@@ -54,7 +49,6 @@ class PurchaseRequest extends AbstractRequest
     /**
      * Get cookie plugin
      *
-     * @access public
      * @return \Guzzle\Plugin\Cookie\CookiePlugin
      */
     public function getCookiePlugin()
@@ -65,7 +59,6 @@ class PurchaseRequest extends AbstractRequest
     /**
      * Get installation
      *
-     * @access public
      * @return string
      */
     public function getInstallation()
@@ -77,9 +70,7 @@ class PurchaseRequest extends AbstractRequest
      * Set installation
      *
      * @param string $value Installation
-     *
-     * @access public
-     * @return void
+     * @return PurchaseRequest
      */
     public function setInstallation($value)
     {
@@ -89,7 +80,6 @@ class PurchaseRequest extends AbstractRequest
     /**
      * Get merchant
      *
-     * @access public
      * @return string
      */
     public function getMerchant()
@@ -101,9 +91,7 @@ class PurchaseRequest extends AbstractRequest
      * Set merchant
      *
      * @param string $value Merchant
-     *
-     * @access public
-     * @return void
+     * @return PurchaseRequest
      */
     public function setMerchant($value)
     {
@@ -134,7 +122,6 @@ class PurchaseRequest extends AbstractRequest
     /**
      * Get pa response
      *
-     * @access public
      * @return string
      */
     public function getPaResponse()
@@ -146,9 +133,7 @@ class PurchaseRequest extends AbstractRequest
      * Set pa response
      *
      * @param string $value Pa response
-     *
-     * @access public
-     * @return void
+     * @return PurchaseRequest
      */
     public function setPaResponse($value)
     {
@@ -158,7 +143,6 @@ class PurchaseRequest extends AbstractRequest
     /**
      * Get password
      *
-     * @access public
      * @return string
      */
     public function getPassword()
@@ -170,9 +154,7 @@ class PurchaseRequest extends AbstractRequest
      * Set password
      *
      * @param string $value Password
-     *
-     * @access public
-     * @return void
+     * @return PurchaseRequest
      */
     public function setPassword($value)
     {
@@ -182,7 +164,6 @@ class PurchaseRequest extends AbstractRequest
     /**
      * Get redirect cookie
      *
-     * @access public
      * @return string
      */
     public function getRedirectCookie()
@@ -194,9 +175,7 @@ class PurchaseRequest extends AbstractRequest
      * Set redirect cookie
      *
      * @param string $value Password
-     *
-     * @access public
-     * @return void
+     * @return PurchaseRequest
      */
     public function setRedirectCookie($value)
     {
@@ -206,7 +185,6 @@ class PurchaseRequest extends AbstractRequest
     /**
      * Get redirect echo
      *
-     * @access public
      * @return string
      */
     public function getRedirectEcho()
@@ -218,9 +196,7 @@ class PurchaseRequest extends AbstractRequest
      * Set redirect echo
      *
      * @param string $value Password
-     *
-     * @access public
-     * @return void
+     * @return PurchaseRequest
      */
     public function setRedirectEcho($value)
     {
@@ -230,7 +206,6 @@ class PurchaseRequest extends AbstractRequest
     /**
      * Get session
      *
-     * @access public
      * @return string
      */
     public function getSession()
@@ -242,9 +217,7 @@ class PurchaseRequest extends AbstractRequest
      * Set session
      *
      * @param string $value Session
-     *
-     * @access public
-     * @return void
+     * @return PurchaseRequest
      */
     public function setSession($value)
     {
@@ -254,7 +227,6 @@ class PurchaseRequest extends AbstractRequest
     /**
      * Get term url
      *
-     * @access public
      * @return string
      */
     public function getTermUrl()
@@ -266,9 +238,7 @@ class PurchaseRequest extends AbstractRequest
      * Set term url
      *
      * @param string $value Term url
-     *
-     * @access public
-     * @return void
+     * @return PurchaseRequest
      */
     public function setTermUrl($value)
     {
@@ -278,7 +248,6 @@ class PurchaseRequest extends AbstractRequest
     /**
      * Get user agent header
      *
-     * @access public
      * @return string
      */
     public function getUserAgentHeader()
@@ -290,9 +259,7 @@ class PurchaseRequest extends AbstractRequest
      * Set user agent header
      *
      * @param string $value User agent header
-     *
-     * @access public
-     * @return void
+     * @return PurchaseRequest
      */
     public function setUserAgentHeader($value)
     {
@@ -319,7 +286,6 @@ class PurchaseRequest extends AbstractRequest
     /**
      * Get data
      *
-     * @access public
      * @return \SimpleXMLElement
      */
     public function getData()
@@ -338,7 +304,8 @@ class PurchaseRequest extends AbstractRequest
         $order->addAttribute('orderCode', $this->getTransactionId());
         $order->addAttribute('installationId', $this->getInstallation());
 
-        $order->addChild('description', $this->getDescription());
+        $description = $this->getDescription() ? $this->getDescription() : 'Merchandise';
+        $order->addChild('description', $description);
 
         $amount = $order->addChild('amount');
         $amount->addAttribute('value', $this->getAmountInteger());
@@ -371,7 +338,9 @@ class PurchaseRequest extends AbstractRequest
             $header->addChild('ephemeralPublicKey', $appleData['header']['ephemeralPublicKey']);
             $header->addChild('publicKeyHash', $appleData['header']['publicKeyHash']);
             $header->addChild('transactionId', $appleData['header']['transactionId']);
-            $header->addChild('applicationData', $appleData['header']['applicationData']);
+            if (isset($appleData['header']['applicationData'])) {
+                $header->addChild('applicationData', $appleData['header']['applicationData']);
+            }
 
             $card->addChild('signature', $appleData['signature']);
             $card->addChild('version', $appleData['version']);
@@ -403,11 +372,13 @@ class PurchaseRequest extends AbstractRequest
             $address->addChild('street', $this->getCard()->getAddress1());
             $address->addChild('postalCode', $this->getCard()->getPostcode());
             $address->addChild('countryCode', $this->getCard()->getCountry());
-        }
 
-        $session = $payment->addChild('session');
-        $session->addAttribute('shopperIPAddress', $this->getClientIP());
-        $session->addAttribute('id', $this->getSession());
+            $session = $payment->addChild('session'); // Empty tag is valid but setting an empty ID attr isn't
+            if ($this->getClientIp() && $this->getSession()) {
+                $session->addAttribute('shopperIPAddress', $this->getClientIP());
+                $session->addAttribute('id', $this->getSession());
+            }
+        }
 
         $paResponse = $this->getPaResponse();
 
@@ -444,8 +415,6 @@ class PurchaseRequest extends AbstractRequest
      * Send data
      *
      * @param \SimpleXMLElement $data Data
-     *
-     * @access public
      * @return RedirectResponse
      */
     public function sendData($data)
@@ -500,10 +469,13 @@ class PurchaseRequest extends AbstractRequest
             ->post($this->getEndpoint(), $headers, $xml)
             ->send();
 
-        return $this->response = new RedirectResponse(
-            $this,
-            $httpResponse->getBody()
-        );
+        if ($this->getCard()->getBrand() === 'apple') {
+            $this->response = new Response($this, $httpResponse->getBody());
+        } else {
+            $this->response = new RedirectResponse($this, $httpResponse->getBody());
+        }
+
+        return $this->response;
     }
 
     /**
@@ -511,7 +483,6 @@ class PurchaseRequest extends AbstractRequest
      *
      * Returns endpoint depending on test mode
      *
-     * @access protected
      * @return string
      */
     protected function getEndpoint()
