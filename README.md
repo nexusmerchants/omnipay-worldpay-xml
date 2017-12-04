@@ -2,6 +2,8 @@
 
 **WorldPay XML Direct driver for the Omnipay PHP payment processing library**
 
+This fork from [`teaandcode/omnipay-worldpay-xml`](https://github.com/teaandcode/omnipay-worldpay-xml) adds Apple Pay token processing support.
+
 [Omnipay](https://github.com/omnipay/omnipay) is a framework agnostic,
 multi-gateway payment processing library for PHP 5.6+. This package implements
 WorldPay XML Direct support for Omnipay.
@@ -14,7 +16,7 @@ add it to your `composer.json` file:
 ```json
 {
     "require": {
-        "teaandcode/omnipay-worldpay-xml": "~1.0"
+        "comicrelief/omnipay-worldpay-xml": "^2.0"
     }
 }
 ```
@@ -46,5 +48,5 @@ project, or ask more detailed questions, there is also a
 subscribe to.
 
 If you believe you have found a bug, please report it using the
-[issue tracker](https://github.com/teaandcode/omnipay-worldpay-xml/issues), or
+[issue tracker](https://github.com/comicrelief/omnipay-worldpay-xml/issues), or
 better yet, fork the library and submit a pull request.
