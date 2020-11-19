@@ -1,5 +1,5 @@
 {
-    "name": "comicrelief/omnipay-worldpay-xml",
+    "name": "nexusmerchants/omnipay-worldpay-xml",
     "type": "library",
     "description": "WorldPay XML driver for the Omnipay payment processing library",
     "keywords": [
@@ -20,6 +20,10 @@
         {
             "name": "Noel Light-Hilary",
             "email": "n.light-hilary@comicrelief.com"
+        },
+        {
+            "name": "Peter Harlacher",
+            "email": "peter@nexusmerchants.com"
         }
     ],
     "autoload": {
@@ -27,8 +31,8 @@
     },
     "require": {
         "php": "^5.6|^7",
-        "guzzle/plugin-cookie": "~3.7",
-        "omnipay/common": "~2.3"
+        "guzzle/plugin-cookie": "^3.7",
+        "omnipay/common": "^3.0"
     },
     "require-dev": {
         "omnipay/tests": "~2.0"
