@@ -302,7 +302,11 @@ class PurchaseRequest extends AbstractRequest
 
         $order = $data->addChild('submit')->addChild('order');
         $order->addAttribute('orderCode', $this->getTransactionId());
-        $order->addAttribute('installationId', $this->getInstallation());
+
+        $installationId = $this->getInstallation();
+        if (!empty($installationId)) {
+            $order->addAttribute('installationId', $this->getInstallation());
+        }
 
         $description = $this->getDescription() ? $this->getDescription() : 'Merchandise';
         $order->addChild('description', $description);
@@ -369,8 +373,11 @@ class PurchaseRequest extends AbstractRequest
             $card->addChild('cvc', $this->getCard()->getCvv());
 
             $address = $card->addChild('cardAddress')->addChild('address');
-            $address->addChild('street', $this->getCard()->getAddress1());
+            $address->addChild('address1', $this->getCard()->getAddress1());
+            $address->addChild('address2', $this->getCard()->getAddress2());
             $address->addChild('postalCode', $this->getCard()->getPostcode());
+            $address->addChild('city', $this->getCard()->getCity());
+            $address->addChild('state', $this->getCard()->getState());
             $address->addChild('countryCode', $this->getCard()->getCountry());
 
             $session = $payment->addChild('session'); // Empty tag is valid but setting an empty ID attr isn't
@@ -461,18 +468,17 @@ class PurchaseRequest extends AbstractRequest
 
         $this->cookiePlugin = new CookiePlugin($cookieJar);
 
-        $this->httpClient->addSubscriber($this->cookiePlugin);
+        //$this->httpClient->addSubscriber($this->cookiePlugin);
 
         $xml = $document->saveXML();
 
         $httpResponse = $this->httpClient
-            ->post($this->getEndpoint(), $headers, $xml)
-            ->send();
+            ->request('POST', $this->getEndpoint(), $headers, $xml);
 
         if ($this->getCard()->getBrand() === 'apple') {
-            $this->response = new Response($this, $httpResponse->getBody());
+            $this->response = new Response($this, $httpResponse->getBody()->getContents());
         } else {
-            $this->response = new RedirectResponse($this, $httpResponse->getBody());
+            $this->response = new RedirectResponse($this, $httpResponse->getBody()->getContents());
         }
 
         return $this->response;
